@@ -16,6 +16,12 @@ PeanutKing_RescueSumo::PeanutKing_RescueSumo(void) :
   }
 }
 
+PeanutKing_RescueSumo::PeanutKing_RescueSumo(uint8_t TCANRST) :
+  tcanRstPin(TCANRST)
+  {
+  PeanutKing_RescueSumo();
+}
+
 /*
 ISR (TIMER1_COMPA_vect) {
   if (sumoRobot != NULL ) {
