@@ -353,7 +353,7 @@ const int stepsPerRevolution = 200;
   const uint8_t
     GET_READING = 0x55,
     SET_HOME    = 0x54,
-    tcanRstPin,
+    tcanRstPin  = 40,
     pwmPin[4],
     dirPin[4],
     dir2Pin[4],

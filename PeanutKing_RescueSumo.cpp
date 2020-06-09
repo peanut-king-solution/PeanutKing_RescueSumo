@@ -44,6 +44,7 @@ void PeanutKing_RescueSumo::init(void) {
 // the number of steps of the motor and the pins it's
 // attached to
 
+  digitalWrite(tcanRstPin, HIGH);
 //  Stepper stepperMotor[2] = Stepper(100, 8, 9, 10, 11);
 //  Servo   servoMotor[2];  // create servo object to control a servo
 

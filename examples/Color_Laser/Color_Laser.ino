@@ -34,6 +34,6 @@ void loop() {
 
 //  delay(500);
 
-//  robot.servoMove(0, 10);
-//  robot.stepperMove(0 , 10);
+  robot.servoMove(0, 10);
+  robot.stepperMove(0 , 10);
 }
