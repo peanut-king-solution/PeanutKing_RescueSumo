@@ -1,5 +1,5 @@
-#include <PeanutKing_RescueSumo.h>
-static PeanutKing_RescueSumo robot = PeanutKing_RescueSumo();
+#include <PeanutKing_Rescue.h>
+static PeanutKing_Rescue robot = PeanutKing_Rescue();
 
 long timer = 0;
 byte data[4];
@@ -10,6 +10,7 @@ void setup() {
   robot.init();
   robot.colorSensorInit(1);
   robot.laserSensorInit(7);
+  robot.stepperSpeed = 100;
 }
 
 void loop() {

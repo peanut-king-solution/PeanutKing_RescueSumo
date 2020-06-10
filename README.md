@@ -1,6 +1,6 @@
-# PeanutKing Soccer Arduino Library
+# PeanutKing Rescue/Sumo Arduino Library
 
-Arudino library for Robo Fever soccer robot.
+Arudino library for Peanut King Rescue/Sumo robot.
 
 ---
 
@@ -12,5 +12,6 @@ Arudino library for Robo Fever soccer robot.
 
 ## Documentation
 
- * V2.2 robot released
+ * V0.5
+
  

@@ -280,7 +280,8 @@ class PeanutKing_RescueSumo {
   uint16_t readLaserSensor(uint8_t i);
   colorSensor_t readcolorSensor(uint8_t i);
 
-
+  // motors
+  void setStepperSpeed(int s);
   void servoMove(uint8_t i, int16_t val);
   void stepperMove(uint8_t i, int16_t val);
 
@@ -343,9 +344,6 @@ class PeanutKing_RescueSumo {
   bool timeoutOccurred(void);
 
 
-// change this to fit the number of steps per revolution
-const int stepsPerRevolution = 200;
-
   // Constant  ===========================================================
   const int8_t  tcsblPin;
   const int8_t  compass_address = 8;
@@ -374,13 +372,16 @@ const int stepsPerRevolution = 200;
   uint32_t
     sysTicks = 0;
   
+// change this to fit the number of steps per revolution
+  int stepsPerRevolution = 6400;
+  int stepperSpeed = 100;
+
   // motors
   stepper_t stepperMotor[2] = { 
-    {Stepper(200, 8, 9), 0, 0}, 
-    {Stepper(200, 13, 12), 0, 0} 
+    {Stepper(stepsPerRevolution, 8, 9), 0, 0}, 
+    {Stepper(stepsPerRevolution, 13, 12), 0, 0} 
   };
   servos_t  servoMotor[2];  // create servo object to control a servo
-
 
   // tcs34725
 

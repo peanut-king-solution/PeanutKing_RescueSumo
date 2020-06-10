@@ -19,8 +19,9 @@ PeanutKing_RescueSumo::PeanutKing_RescueSumo(void) :
 PeanutKing_RescueSumo::PeanutKing_RescueSumo(uint8_t TCANRST) :
   tcanRstPin(TCANRST)
   {
-  PeanutKing_RescueSumo();
+    PeanutKing_RescueSumo();
 }
+
 
 /*
 ISR (TIMER1_COMPA_vect) {
@@ -52,8 +53,7 @@ void PeanutKing_RescueSumo::init(void) {
   servoMotor[0].s.attach(10);    // attaches the servo on pin 9 to the servo object
   servoMotor[1].s.attach(11);    // attaches the servo on pin 9 to the servo object
 
-  stepperMotor[0].s.setSpeed(30);
-  stepperMotor[1].s.setSpeed(30);
+  setStepperSpeed(stepperSpeed);
 
   /*
   cli();    //disable interrupts
@@ -114,6 +114,12 @@ colorSensor_t PeanutKing_RescueSumo::readcolorSensor(uint8_t i) {
   return s;
 }
 
+void PeanutKing_RescueSumo::setStepperSpeed(int speed) {
+  stepperSpeed = speed;
+  stepperMotor[0].s.setSpeed(stepperSpeed);
+  stepperMotor[1].s.setSpeed(stepperSpeed);
+}
+
 void PeanutKing_RescueSumo::servoMove(uint8_t i, int16_t val) {
   if ( millis() - servoMotor[i].t > 15 ) {
     servoMotor[i].s.write(val);   // sets the servo position according to the scaled value
@@ -122,12 +128,15 @@ void PeanutKing_RescueSumo::servoMove(uint8_t i, int16_t val) {
     //delay(15);                    // waits for the servo to get there
   }
 }
+
 void PeanutKing_RescueSumo::stepperMove(uint8_t i, int16_t val) {
   // move a number of steps
-  stepperMotor[i].s.step(val - stepperMotor[i].v);
+  stepperMotor[i].s.step(val);
 
   // remember the previous value of the sensor
-  stepperMotor[i].v = val;
+  stepperMotor[i].v += val;
+  if (stepperMotor[i].v >= stepsPerRevolution) stepperMotor[i].v -= stepsPerRevolution;
+  else if (stepperMotor[i].v < 0) stepperMotor[i].v += stepsPerRevolution;
   stepperMotor[i].t = millis();
 }
 

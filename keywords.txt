@@ -5,6 +5,8 @@
 #######################################
 
 PeanutKing_RescueSumo	KEYWORD1
+PeanutKing_Rescue			KEYWORD1
+PeanutKing_Sumo				KEYWORD1
 
 #######################################
 # Methods and Functions 
