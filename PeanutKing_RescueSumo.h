@@ -269,6 +269,9 @@ class PeanutKing_RescueSumo {
     ledSetup(uint8_t, uint8_t, uint8_t);
 
   void motorSet(uint8_t motor_no, int16_t speed);
+  
+  hsv_t rgb2hsv(rgb_t in);
+  color_t readAdvColor(uint8_t i);
 
   void tcaselect(uint8_t i);
   void colorSensorInit(uint8_t i);

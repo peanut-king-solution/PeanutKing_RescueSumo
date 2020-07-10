@@ -43,6 +43,23 @@ void loop() {
     dispDist(i);
   delay(1000);
   */
+
+
+  color_t colorMid = robot.readAdvColor(2);
+
+  switch( colorMid ) {
+    case black:   Serial.print("black  ");  break;
+    case white:   Serial.print("white  ");  break;
+    case grey:    Serial.print("grey   ");  break;
+    case red:     Serial.print("red    ");  break;
+    case green:   Serial.print("green  ");  break;
+    case blue:    Serial.print("blue   ");  break;
+    case yellow:  Serial.print("yellow ");  break;
+    case cyan:    Serial.print("cyan   ");  break;
+    case magenta: Serial.print("magenta");  break;
+  }
+
+  
   // ------------------------------------------
 
   robot.moveForward(1);

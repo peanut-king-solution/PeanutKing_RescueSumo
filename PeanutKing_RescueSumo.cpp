@@ -22,6 +22,46 @@ ISR (TIMER1_COMPA_vect) {
 }
 */
 
+
+
+hsv_t PeanutKing_RescueSumo::rgb2hsv(rgb_t in) {
+  hsv_t      out;
+  int16_t  min, max, delta;
+
+  min = in.r < in.g ? in.r : in.g;
+  min = min  < in.b ? min  : in.b;
+
+  max = in.r > in.g ? in.r : in.g;
+  max = max  > in.b ? max  : in.b;
+  
+  out.v = max;                                // v
+  delta = max - min;
+  if ( max == 0 ) { // if max is 0, then r = g = b = 0
+    out.s = 0;                                // s = 0
+    out.h = NAN;                              // h is now undefined
+  }
+  else if ( delta < 1 ) { // grey color
+    out.s = 0;
+    out.h = 0;                                // undefined
+  }
+  else {
+  // NOTE: if Max is == 0, this divide would cause a crash
+    out.s = 255 * delta / max;                // s
+
+    if ( in.g >= max )                    // > is bogus, just keeps compilor happy
+      out.h = 120 + int16_t( in.b - in.r ) * 60 / delta;  // between cyan & yellow
+    else
+    if ( in.b >= max )    
+      out.h = 240 + int16_t( in.r - in.g ) * 60 / delta;  // between magenta & cyan
+    else {
+      out.h = 360 + int16_t( in.g - in.b ) * 60 / delta;  // between yellow & magenta
+      if ( out.h > 360 )
+        out.h -= 360;
+    }
+  }
+  return out;
+}
+
 void PeanutKing_RescueSumo::tcaselect(uint8_t i) {
   if (i > 7) return;
 
@@ -78,6 +118,22 @@ colorSensor_t PeanutKing_RescueSumo::readcolorSensor(uint8_t i) {
   lux = calculateLux(r, g, b);
   colorSensor_t s = {r, g, b, c, colorTemp, lux};
   return s;
+}
+
+color_t PeanutKing_RescueSumo::readAdvColor(uint8_t i) {
+  colorSensor_t cs = readcolorSensor(i);
+  rgb_t in = {cs.r, cs.g, cs.b};
+
+  hsv_t op = rgb2hsv(in);
+
+  if ( op.v < 30 )                     return black;
+  else if ( op.s < 10 && op.v > 150 )  return white;
+  else if ( op.h < 50 || op.h > 315 )  return red;
+  else if ( op.h < 100 )               return yellow;
+  else if ( op.h < 175 )               return green;
+  else if ( op.h < 250 )               return blue;
+  else                                 return magenta;
+
 }
 
 void PeanutKing_RescueSumo::setStepperSpeed(int speed) {
