@@ -39,9 +39,6 @@
 #define calcMacroPeriod(vcsel_period_pclks) ((((uint32_t)2304 * (vcsel_period_pclks) * 1655) + 500) / 1000)
 
 
-
-
-
 /* =============================================================================
  *                             Color sensor TCS34725
  * ============================================================================= */
@@ -118,26 +115,25 @@ typedef struct {
   uint8_t *pixels;     // Holds LED color values (3 or 4 bytes each)
 } led_t;
 
-
 typedef struct {
   uint16_t r;
   uint16_t g;
   uint16_t b;
   uint16_t c;
-  uint16_t colorTemp;
-  uint16_t lux;
+  uint16_t k;
+  uint16_t l;
 } colorSensor_t;
 
 typedef struct {
-  Servo s;
+  Servo    s;
   uint32_t t;
-  int16_t v;
+  int16_t  v;
 } servos_t;
 
 typedef struct {
-  Stepper s;
+  Stepper  s;
   uint32_t t;
-  int16_t v;
+  int16_t  v;
 } stepper_t;
 
 typedef enum { front = 0, left, right, back } sensorNum;
@@ -283,7 +279,7 @@ class PeanutKing_RescueSumo {
   // motors
   void setStepperSpeed(int s);
   void servoMove(uint8_t i, int16_t val);
-  void stepperMove(uint8_t i, int16_t val);
+  void stepperMove(uint8_t i, int32_t val);
 
 
   // tcs34725
@@ -345,43 +341,44 @@ class PeanutKing_RescueSumo {
 
 
   // Constant  ===========================================================
-  const int8_t  tcsblPin;
-  const int8_t  compass_address = 8;
 
   const uint8_t
-    GET_READING = 0x55,
-    SET_HOME    = 0x54,
-    tcanRstPin  = 40,
+    dirPin[2]   = {8, 13},
+    stepPin[2]  = {9, 12},
+    servoPin[2] = {11, 10};
+/*
     pwmPin[4],
-    dirPin[4],
+    dir1Pin[4],
     dir2Pin[4],
     diagPin[4];
-
-  // Variables ===========================================================
-  uint16_t
-    EYEBOUNDARY = 20,
-    LCD_backlightval,
-    systemTime,      //a reference 100Hz clock, 0-100 every second
-    autoScanSensors;
-  int16_t
-    btDegree = 0,
-    btDistance = 0,
-    btRotate = 0;
-  led_t
-    leds[2];
-  uint32_t
-    sysTicks = 0;
-  
+*/
 // change this to fit the number of steps per revolution
-  int stepsPerRevolution = 6400;
+  int stepsPerRevolution = 25600;
   int stepperSpeed = 100;
+/*
+  // motors
+  stepper_t *stepperMotor;
+  servos_t  *servoMotor;  // create servo object to control a servo
 
   // motors
-  stepper_t stepperMotor[2] = { 
-    {Stepper(stepsPerRevolution, 8, 9), 0, 0}, 
-    {Stepper(stepsPerRevolution, 13, 12), 0, 0} 
+  stepperMotor = new stepper_t{ 
+    {Stepper(stepsPerRevolution, dirPin[0], stepPin[1]), 0, 0}, 
+    {Stepper(stepsPerRevolution, dirPin[1], stepPin[1]), 0, 0} 
   };
-  servos_t  servoMotor[2];  // create servo object to control a servo
+  servoMotor = new servos_t[2];  // create servo object to control a servo
+*/
+
+  // motors
+  stepper_t stepperMotor[2] = {
+    {Stepper(stepsPerRevolution, dirPin[0], stepPin[0]), 0, 0}, 
+    {Stepper(stepsPerRevolution, dirPin[1], stepPin[1]), 0, 0} 
+  };
+  servos_t servoMotor[2];  // create servo object to control a servo
+
+
+  led_t
+    leds[2];
+
 
   // tcs34725
 

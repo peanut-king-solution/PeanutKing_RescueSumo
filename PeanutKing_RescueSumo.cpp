@@ -3,7 +3,6 @@
 static PeanutKing_RescueSumo *sumoRobot = NULL;
 
 PeanutKing_RescueSumo::PeanutKing_RescueSumo(void) :
-  tcsblPin(32),
   address(ADDRESS_DEFAULT),
   io_timeout(0), // no timeout
   did_timeout(false),
@@ -16,13 +15,6 @@ PeanutKing_RescueSumo::PeanutKing_RescueSumo(void) :
   }
 }
 
-PeanutKing_RescueSumo::PeanutKing_RescueSumo(uint8_t TCANRST) :
-  tcanRstPin(TCANRST)
-  {
-    PeanutKing_RescueSumo();
-}
-
-
 /*
 ISR (TIMER1_COMPA_vect) {
   if (sumoRobot != NULL ) {
@@ -30,57 +22,13 @@ ISR (TIMER1_COMPA_vect) {
 }
 */
 
-void PeanutKing_RescueSumo::init(void) {
-  Wire.begin();
-  Serial.begin(9600);
-  Serial1.begin(9600);
-  
-  ledSetup(1, tcsblPin, 1);
-  ledShow(1, 255, 255, 255, 255, 1);
-  ledUpdate(1);
-  delay(1);
-  // change this to the number of steps on your motor
-
-// create an instance of the stepper class, specifying
-// the number of steps of the motor and the pins it's
-// attached to
-
-  digitalWrite(tcanRstPin, HIGH);
-//  Stepper stepperMotor[2] = Stepper(100, 8, 9, 10, 11);
-//  Servo   servoMotor[2];  // create servo object to control a servo
-
-  // set the speed of the motor to 30 RPMs
-  servoMotor[0].s.attach(10);    // attaches the servo on pin 9 to the servo object
-  servoMotor[1].s.attach(11);    // attaches the servo on pin 9 to the servo object
-
-  setStepperSpeed(stepperSpeed);
-
-  /*
-  cli();    //disable interrupts
-  // Timer 1
-  TCCR1A = 0x00;            // Normal mode, just as a Timer
-  TCCR1B = 0;               // same for TCCR0B
-  TCNT1 = 0;
-  
-  OCR1A = 624;       // =(16*10^6) / (125*256) -1 (must be <65536)
-  
-  TCCR1B |= (1 << WGM12);   // CTC mode; Clear Timer on Compare
-  TCCR1B |= (1 << CS12);    // prescaler = 256
-  
-  TIMSK1 |= (1 << OCIE1A);  // enable timer compare interrupt
-  sei();    //allow interrupts
-  */
-
-  //while ( compassRead() == 400 );
-  delay(10);
-}
-
 void PeanutKing_RescueSumo::tcaselect(uint8_t i) {
   if (i > 7) return;
 
   Wire.beginTransmission(TCAADDR);
   Wire.write(1 << i);
   Wire.endTransmission();
+  delay(1);
 }
 
 void PeanutKing_RescueSumo::colorSensorInit(uint8_t i) {
@@ -90,23 +38,41 @@ void PeanutKing_RescueSumo::colorSensorInit(uint8_t i) {
   } else {
     Serial.println("No TCS34725 found ... check your connections");
   }
+  delay(1);
 }
 void PeanutKing_RescueSumo::laserSensorInit(uint8_t i) {
   tcaselect(i);
   VL53L0XInit();
-
   setTimeout(500);
+  delay(1);
 }
 
 uint16_t PeanutKing_RescueSumo::readLaserSensor(uint8_t i) {
-  tcaselect(i);
+  uint8_t idx = 0;
+  switch(i) {
+    case 0: idx = 0;  break;
+    case 1: idx = 3;  break;
+    case 2: idx = 7;  break;
+  }
+
+  tcaselect(idx);
   return readRangeSingleMillimeters();
 }
 
 colorSensor_t PeanutKing_RescueSumo::readcolorSensor(uint8_t i) {
   uint16_t r, g, b, c, colorTemp, lux;
-  
-  tcaselect(i);
+  uint8_t idx = 0;
+
+  switch(i) {
+    case 0: idx = 1;  break;
+    case 1: idx = 2;  break;
+    case 2: idx = 4;  break;
+    case 3: idx = 5;  break;
+    case 4: idx = 6;  break;
+  }
+
+  tcaselect(idx);
+
   getRawData(&r, &g, &b, &c);
   colorTemp = calculateColorTemperature_dn40(r, g, b, c);
   lux = calculateLux(r, g, b);
@@ -129,10 +95,9 @@ void PeanutKing_RescueSumo::servoMove(uint8_t i, int16_t val) {
   }
 }
 
-void PeanutKing_RescueSumo::stepperMove(uint8_t i, int16_t val) {
+void PeanutKing_RescueSumo::stepperMove(uint8_t i, int32_t val) {
   // move a number of steps
   stepperMotor[i].s.step(val);
-
   // remember the previous value of the sensor
   stepperMotor[i].v += val;
   if (stepperMotor[i].v >= stepsPerRevolution) stepperMotor[i].v -= stepsPerRevolution;
