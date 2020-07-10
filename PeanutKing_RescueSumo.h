@@ -96,15 +96,15 @@
 #define TCS34725_BDATAH           (0x1B)
 
 typedef struct {
-  uint8_t r;
-  uint8_t g;
-  uint8_t b;
+  uint16_t r;
+  uint16_t g;
+  uint16_t b;
 } rgb_t;
 
 typedef struct {
   uint16_t h;
-  uint8_t s;
-  uint8_t v;
+  uint16_t s;
+  uint16_t v;
 } hsv_t;
 
 typedef struct {

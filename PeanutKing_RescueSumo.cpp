@@ -46,7 +46,8 @@ hsv_t PeanutKing_RescueSumo::rgb2hsv(rgb_t in) {
   }
   else {
   // NOTE: if Max is == 0, this divide would cause a crash
-    out.s = 255 * delta / max;                // s
+    double temp = 255 * delta / max;                // s
+    out.s = temp;
 
     if ( in.g >= max )                    // > is bogus, just keeps compilor happy
       out.h = 120 + int16_t( in.b - in.r ) * 60 / delta;  // between cyan & yellow
@@ -125,14 +126,19 @@ color_t PeanutKing_RescueSumo::readAdvColor(uint8_t i) {
   rgb_t in = {cs.r, cs.g, cs.b};
 
   hsv_t op = rgb2hsv(in);
+  Serial.print("h:");
+  Serial.print( op.h );
+  Serial.print("  S:");
+  Serial.print( op.s );
+  Serial.print("  V:");
+  Serial.println( op.v );
 
-  if ( op.v < 30 )                     return black;
-  else if ( op.s < 10 && op.v > 150 )  return white;
-  else if ( op.h < 50 || op.h > 315 )  return red;
-  else if ( op.h < 100 )               return yellow;
-  else if ( op.h < 175 )               return green;
-  else if ( op.h < 250 )               return blue;
-  else                                 return magenta;
+  if ( op.v < 250 )                    return black;
+  else if ( op.s < 10 && op.v > 800 )  return white;
+  else if ( op.h < 15 || op.h > 315 )  return red;
+  else if ( op.h < 80 )                return yellow;
+  else if ( op.h < 150 )               return green;
+  else                                 return blue;
 
 }
 
