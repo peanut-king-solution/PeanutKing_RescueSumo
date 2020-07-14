@@ -10,6 +10,14 @@ void PeanutKing_Sumo::init(void) {
   Serial.begin(115200);
   //Serial1.begin(9600);
   
+  for (uint8_t i=0; i<4; i++) {
+    pinMode(pwmPin[i],  OUTPUT);
+    pinMode(dirAPin[i],  OUTPUT);
+    pinMode(dirBPin[i], OUTPUT);
+    pinMode(diagPin[i], OUTPUT);
+    digitalWrite(diagPin[i], HIGH);
+  }
+
   digitalWrite(tcanRstPin, HIGH);
 
   ledSetup(1, tcsblPin, 1);
