@@ -14,11 +14,14 @@ class PeanutKing_Sumo : public PeanutKing_RescueSumo {
  * ============================================================================= */
   void
     init(void),
-    stop(void),
-    moveForward(uint8_t spd = 1),
-    moveBackward(uint8_t spd = 1),
-    moveRight(uint8_t spd = 1),
-    moveLeft(uint8_t spd = 1);
+    stop(void);
+
+  color_t readAdvColor(uint8_t i);
+  colorSensor_t readcolorSensor(uint8_t i);
+
+  uint16_t readLaserSensor(uint8_t i);
+
+  void motorSet(uint8_t motor_no, int16_t speed);
 
   // Constant  ===========================================================
   const int8_t  compass_address = 8;

@@ -271,13 +271,10 @@ class PeanutKing_RescueSumo {
   void motorSet(uint8_t motor_no, int16_t speed);
   
   hsv_t rgb2hsv(rgb_t in);
-  color_t readAdvColor(uint8_t i);
 
   void tcaselect(uint8_t i);
   void colorSensorInit(uint8_t i);
   void laserSensorInit(uint8_t i);
-  uint16_t readLaserSensor(uint8_t i);
-  colorSensor_t readcolorSensor(uint8_t i);
 
   // motors
   void setStepperSpeed(int s);

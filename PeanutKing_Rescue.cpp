@@ -12,7 +12,7 @@ void PeanutKing_Rescue::init(void) {
   
   digitalWrite(tcanRstPin, HIGH);
 
-  ledSetup(1, tscblPin, 1);
+  ledSetup(1, tcsblPin, 1);
   ledShow(1, 255, 255, 255, 255, 1);
   ledUpdate(1);
   delay(10);
@@ -214,4 +214,67 @@ void PeanutKing_Rescue::stop(void) {
   digitalWrite(dirPin[1], HIGH);
   analogWrite(stepPin[1],0);
 }
+
+
+uint16_t PeanutKing_Rescue::readLaserSensor(uint8_t i) {
+  uint8_t idx = 0;
+  switch(i) {
+    case 0: idx = 0;  break;
+    case 1: idx = 3;  break;
+    case 2: idx = 7;  break;
+  }
+
+  tcaselect(idx);
+  return readRangeSingleMillimeters();
+}
+
+colorSensor_t PeanutKing_Rescue::readcolorSensor(uint8_t i) {
+  uint16_t r, g, b, c, colorTemp, lux;
+  uint8_t idx = 0;
+
+  // 0 3
+  // 1 2
+  switch(i) {
+    case 0: idx = 1;  break;
+    case 1: idx = 2;  break;
+    case 2: idx = 4;  break;
+    case 3: idx = 5;  break;
+    case 4: idx = 6;  break;
+  }
+
+  tcaselect(idx);
+
+  getRawData(&r, &g, &b, &c);
+  colorTemp = calculateColorTemperature_dn40(r, g, b, c);
+  lux = calculateLux(r, g, b);
+  colorSensor_t s = {r, g, b, c, colorTemp, lux};
+  return s;
+}
+
+color_t PeanutKing_Rescue::readAdvColor(uint8_t i) {
+  colorSensor_t cs = readcolorSensor(i);
+
+  rgb_t in = {cs.r, cs.g, cs.b};
+
+  hsv_t op = rgb2hsv(in);
+  Serial.print("h:");
+  Serial.print( op.h );
+  Serial.print("  S:");
+  Serial.print( op.s );
+  Serial.print("  V:");
+  Serial.println( op.v );
+
+  if ( op.v < 60 && op.s < 50  )     return black;
+  else if ( op.h < 80 )                return yellow;
+  else if ( op.s < 50 && op.v > 60 )  return white;
+  else if ( op.h < 15 || op.h > 315 )  return red;
+  
+  else if ( op.h < 150 )               return green;
+  else                                 return blue;
+
+}
+
+
+
+
 

@@ -52,7 +52,7 @@ hsv_t PeanutKing_RescueSumo::rgb2hsv(rgb_t in) {
     if ( in.g >= max )                    // > is bogus, just keeps compilor happy
       out.h = 120 + int16_t( in.b - in.r ) * 60 / delta;  // between cyan & yellow
     else
-    if ( in.b >= max )    
+    if ( in.b >= max )
       out.h = 240 + int16_t( in.r - in.g ) * 60 / delta;  // between magenta & cyan
     else {
       out.h = 360 + int16_t( in.g - in.b ) * 60 / delta;  // between yellow & magenta
@@ -81,6 +81,7 @@ void PeanutKing_RescueSumo::colorSensorInit(uint8_t i) {
   }
   delay(1);
 }
+
 void PeanutKing_RescueSumo::laserSensorInit(uint8_t i) {
   tcaselect(i);
   VL53L0XInit();
@@ -88,61 +89,6 @@ void PeanutKing_RescueSumo::laserSensorInit(uint8_t i) {
   delay(1);
 }
 
-uint16_t PeanutKing_RescueSumo::readLaserSensor(uint8_t i) {
-  uint8_t idx = 0;
-  switch(i) {
-    case 0: idx = 0;  break;
-    case 1: idx = 3;  break;
-    case 2: idx = 7;  break;
-  }
-
-  tcaselect(idx);
-  return readRangeSingleMillimeters();
-}
-
-colorSensor_t PeanutKing_RescueSumo::readcolorSensor(uint8_t i) {
-  uint16_t r, g, b, c, colorTemp, lux;
-  uint8_t idx = 0;
-
-  switch(i) {
-    case 0: idx = 1;  break;
-    case 1: idx = 2;  break;
-    case 2: idx = 4;  break;
-    case 3: idx = 5;  break;
-    case 4: idx = 6;  break;
-  }
-
-  tcaselect(idx);
-
-  getRawData(&r, &g, &b, &c);
-  colorTemp = calculateColorTemperature_dn40(r, g, b, c);
-  lux = calculateLux(r, g, b);
-  colorSensor_t s = {r, g, b, c, colorTemp, lux};
-  return s;
-}
-
-color_t PeanutKing_RescueSumo::readAdvColor(uint8_t i) {
-  colorSensor_t cs = readcolorSensor(i);
-
-  rgb_t in = {cs.r, cs.g, cs.b};
-
-  hsv_t op = rgb2hsv(in);
-  Serial.print("h:");
-  Serial.print( op.h );
-  Serial.print("  S:");
-  Serial.print( op.s );
-  Serial.print("  V:");
-  Serial.println( op.v );
-
-  if ( op.v < 60 && op.s < 50  )     return black;
-  else if ( op.h < 80 )                return yellow;
-  else if ( op.s < 50 && op.v > 60 )  return white;
-  else if ( op.h < 15 || op.h > 315 )  return red;
-  
-  else if ( op.h < 150 )               return green;
-  else                                 return blue;
-
-}
 
 void PeanutKing_RescueSumo::setStepperSpeed(int speed) {
   stepperSpeed = speed;

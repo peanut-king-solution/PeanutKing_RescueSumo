@@ -8,6 +8,8 @@ class PeanutKing_Rescue : public PeanutKing_RescueSumo {
   // Constructor 
   PeanutKing_Rescue(void);
 
+  // 0 3
+  // 1 2
 
 /* =============================================================================
  *                              Functions
@@ -20,6 +22,10 @@ class PeanutKing_Rescue : public PeanutKing_RescueSumo {
     moveRight(uint8_t spd = 1),
     moveLeft(uint8_t spd = 1);
 
+  color_t readAdvColor(uint8_t i);
+  colorSensor_t readcolorSensor(uint8_t i);
+
+  uint16_t readLaserSensor(uint8_t i);
   // Constant  ===========================================================
   const int8_t  compass_address = 8;
 
@@ -27,15 +33,13 @@ class PeanutKing_Rescue : public PeanutKing_RescueSumo {
     GET_READING = 0x55,
     SET_HOME    = 0x54,
     tcanRstPin  = 53,
-    tscblPin    = 51,
+    tcsblPin    = 51,
 
     dirPin[2]   = {8, 13},
     stepPin[2]  = {9, 12},
     servoPin[2] = {11, 10};
 
     
-
-
   // Variables ===========================================================
   uint16_t
     systemTime,      //a reference 100Hz clock, 0-100 every second
