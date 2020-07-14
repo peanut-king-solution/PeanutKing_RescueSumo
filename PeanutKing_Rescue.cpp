@@ -53,7 +53,7 @@ void PeanutKing_Rescue::init(void) {
   */
 
   //while ( compassRead() == 400 );
-  delay(10);
+  delay(1);
 }
 
 

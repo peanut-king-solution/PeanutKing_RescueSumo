@@ -17,8 +17,8 @@ class PeanutKing_Rescue : public PeanutKing_RescueSumo {
     stop(void),
     moveForward(uint8_t spd = 1),
     moveBackward(uint8_t spd = 1),
-	moveRight(uint8_t spd = 1),
-	moveLeft(uint8_t spd = 1);
+    moveRight(uint8_t spd = 1),
+    moveLeft(uint8_t spd = 1);
 
   // Constant  ===========================================================
   const int8_t  compass_address = 8;
