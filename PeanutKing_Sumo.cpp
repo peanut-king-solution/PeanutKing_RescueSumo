@@ -25,15 +25,6 @@ void PeanutKing_Sumo::init(void) {
   laserSensorInit(1);
   laserSensorInit(3);
   laserSensorInit(7);
-  colorSensorInit(1);
-  colorSensorInit(2);
-  colorSensorInit(4);
-  colorSensorInit(5);
-  colorSensorInit(6);
-  laserSensorInit(0);
-  laserSensorInit(3);
-  laserSensorInit(7);
-  stepperSpeed = 100;
   
 // create an instance of the stepper class, specifying
 // the number of steps of the motor and the pins it's
@@ -87,7 +78,7 @@ colorSensor_t PeanutKing_Sumo::readcolorSensor(uint8_t i) {
 
   tcaselect(idx);
 
-  getRawData(&r, &g, &b, &c);
+  getRawData(&r, &g, &b, &c, i);
   colorTemp = calculateColorTemperature_dn40(r, g, b, c);
   lux = calculateLux(r, g, b);
   colorSensor_t s = {r, g, b, c, colorTemp, lux};
@@ -127,11 +118,13 @@ void PeanutKing_Sumo::motorSet(uint8_t motor_no, int16_t speed) {
     digitalWrite(dirAPin[motor_no], LOW);
     digitalWrite(dirBPin[motor_no], HIGH);
     analogWrite(pwmPin[motor_no], speed);
+    digitalWrite(diagPin[motor_no], HIGH);
   }
   else if ( speed<0 && speed>-256 ) {
     digitalWrite(dirAPin[motor_no], HIGH);
     digitalWrite(dirBPin[motor_no], LOW);
     analogWrite(pwmPin[motor_no], -speed);
+    digitalWrite(diagPin[motor_no], HIGH);
   }
   else{
     digitalWrite(dirAPin[motor_no], HIGH);

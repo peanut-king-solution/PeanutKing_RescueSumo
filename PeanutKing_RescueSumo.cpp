@@ -354,19 +354,19 @@ void PeanutKing_RescueSumo::setGain(tcs34725Gain_t gain) {
  *  @param  *c
  *          Clear channel value
  */
-void PeanutKing_RescueSumo::getRawData(uint16_t *r, uint16_t *g, uint16_t *b, uint16_t *c) {
+void PeanutKing_RescueSumo::getRawData(uint16_t *r, uint16_t *g, uint16_t *b, uint16_t *c, uint8_t i) {
   if (!_tcs34725Initialised)
     tcs34725Begin();
 
-  static uint32_t colorTimer = 0;
+  static uint32_t colorTimer[4] = {0};
 
-  if ( millis() - colorTimer > 24 ) {
+  if ( millis() - colorTimer[i] > 24 ) {
     *c = read16(TCS34725_CDATAL);
     *r = read16(TCS34725_RDATAL);
     *g = read16(TCS34725_GDATAL);
     *b = read16(TCS34725_BDATAL);
 
-    colorTimer = millis();
+    colorTimer[i] = millis();
   }
   // /* Set a delay for the integration time */
   // switch (_tcs34725IntegrationTime) {

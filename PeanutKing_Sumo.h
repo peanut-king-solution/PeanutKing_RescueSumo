@@ -34,7 +34,8 @@ class PeanutKing_Sumo : public PeanutKing_RescueSumo {
 
     dirAPin[2]  = {9, 12},
     dirBPin[2]  = {8, 11},
-    pwmPin[2]   = {10, 13};
+    pwmPin[2]   = {10, 13},
+    diagPin[2]  = {52, 53};
 
 };
 

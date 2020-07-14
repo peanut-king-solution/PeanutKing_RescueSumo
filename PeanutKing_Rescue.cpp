@@ -244,7 +244,7 @@ colorSensor_t PeanutKing_Rescue::readcolorSensor(uint8_t i) {
 
   tcaselect(idx);
 
-  getRawData(&r, &g, &b, &c);
+  getRawData(&r, &g, &b, &c, i);
   colorTemp = calculateColorTemperature_dn40(r, g, b, c);
   lux = calculateLux(r, g, b);
   colorSensor_t s = {r, g, b, c, colorTemp, lux};
