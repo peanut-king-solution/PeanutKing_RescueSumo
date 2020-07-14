@@ -7,7 +7,7 @@ PeanutKing_Rescue::PeanutKing_Rescue(void)
 
 void PeanutKing_Rescue::init(void) {
   Wire.begin();
-  Serial.begin(9600);
+  Serial.begin(115200);
   //Serial1.begin(9600);
   
   digitalWrite(tcanRstPin, HIGH);
@@ -130,7 +130,81 @@ void PeanutKing_Rescue::moveBackward(uint8_t spd) {
   digitalWrite(dirPin[1], HIGH);
   analogWrite(stepPin[1], 128);
 }
+void PeanutKing_Rescue::moveRight(uint8_t spd) {
+  //---------------------------------------------- Set PWM frequency for D9 & D10 ------------------------------
 
+  //TCCR2B = TCCR2B & B11111000 | B00000001;    // set timer 2 divisor to     1 for PWM frequency of 31372.55 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000011;    // set timer 2 divisor to    32 for PWM frequency of   980.39 Hz
+  //  TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000101;    // set timer 2 divisor to   128 for PWM frequency of   245.10 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000110;    // set timer 2 divisor to   256 for PWM frequency of   122.55 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000111;    // set timer 2 divisor to  1024 for PWM frequency of    30.64 Hz
+
+  //---------------------------------------------- Set PWM frequency for D11 & D12 -----------------------------
+
+  //TCCR1B = TCCR1B & B11111000 | B00000001;    // set timer 1 divisor to     1 for PWM frequency of 31372.55 Hz
+  //TCCR1B = TCCR1B & B11111000 | B00000010;    // set timer 1 divisor to     8 for PWM frequency of  3921.16 Hz
+  //  TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
+  //TCCR1B = TCCR1B & B11111000 | B00000100;    // set timer 1 divisor to   256 for PWM frequency of   122.55 Hz
+  //TCCR1B = TCCR1B & B11111000 | B00000101;    // set timer 1 divisor to  1024 for PWM frequency of    30.64 Hz
+
+  switch(spd) {
+    case 0:
+      TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
+      TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
+      break;
+    case 1:
+		TCCR2B = TCCR2B & B11111000 | B00000100; 	// set timer 2 divisor to    64 for PWM frequency of   490.20 Hz//rightmotor
+    //  TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
+      TCCR1B = TCCR1B & B11111000 | B00000010;    // set timer 1 divisor to     8 for PWM frequency of  3921.16 Hz //leftmotor
+      break;
+  }
+  // Set the spinning direction clockwise:
+  digitalWrite(dirPin[0], LOW);
+  analogWrite(stepPin[0], 128);
+
+  digitalWrite(dirPin[1], LOW);
+  analogWrite(stepPin[1], 128);
+}
+void PeanutKing_Rescue::moveLeft(uint8_t spd) {
+  //---------------------------------------------- Set PWM frequency for D9 & D10 ------------------------------
+
+  //TCCR2B = TCCR2B & B11111000 | B00000001;    // set timer 2 divisor to     1 for PWM frequency of 31372.55 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000011;    // set timer 2 divisor to    32 for PWM frequency of   980.39 Hz
+  //  TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000101;    // set timer 2 divisor to   128 for PWM frequency of   245.10 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000110;    // set timer 2 divisor to   256 for PWM frequency of   122.55 Hz
+  //TCCR2B = TCCR2B & B11111000 | B00000111;    // set timer 2 divisor to  1024 for PWM frequency of    30.64 Hz
+
+  //---------------------------------------------- Set PWM frequency for D11 & D12 -----------------------------
+
+  //TCCR1B = TCCR1B & B11111000 | B00000001;    // set timer 1 divisor to     1 for PWM frequency of 31372.55 Hz
+  //TCCR1B = TCCR1B & B11111000 | B00000010;    // set timer 1 divisor to     8 for PWM frequency of  3921.16 Hz
+  //  TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
+  //TCCR1B = TCCR1B & B11111000 | B00000100;    // set timer 1 divisor to   256 for PWM frequency of   122.55 Hz
+  //TCCR1B = TCCR1B & B11111000 | B00000101;    // set timer 1 divisor to  1024 for PWM frequency of    30.64 Hz
+
+  switch(spd) {
+    case 0:
+      TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
+      TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
+      break;
+    case 1:
+		 
+      TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
+      //TCCR1B = TCCR1B & B11111000 | B00000010;    // set timer 1 divisor to     8 for PWM frequency of  3921.16 Hz 
+	  TCCR1B = TCCR1B & B11111000 | B00000011;		// set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
+      break;
+  }
+  // Set the spinning direction clockwise:
+  digitalWrite(dirPin[0], HIGH);
+  analogWrite(stepPin[0], 128);
+
+  digitalWrite(dirPin[1], HIGH);
+  analogWrite(stepPin[1], 128);
+}
 
 void PeanutKing_Rescue::stop(void) {
   // Set the spinning direction clockwise:

@@ -7,7 +7,7 @@ PeanutKing_RescueSumo::PeanutKing_RescueSumo(void) :
   io_timeout(0), // no timeout
   did_timeout(false),
   _tcs34725Initialised(false),
-  _tcs34725IntegrationTime(TCS34725_INTEGRATIONTIME_700MS),
+  _tcs34725IntegrationTime(TCS34725_INTEGRATIONTIME_24MS),
   _tcs34725Gain(TCS34725_GAIN_1X)
   {
   if (sumoRobot == NULL)  {
@@ -46,7 +46,7 @@ hsv_t PeanutKing_RescueSumo::rgb2hsv(rgb_t in) {
   }
   else {
   // NOTE: if Max is == 0, this divide would cause a crash
-    double temp = 255 * delta / max;                // s
+    double temp = 255.0 * delta / max;                // s
     out.s = temp;
 
     if ( in.g >= max )                    // > is bogus, just keeps compilor happy
@@ -69,7 +69,7 @@ void PeanutKing_RescueSumo::tcaselect(uint8_t i) {
   Wire.beginTransmission(TCAADDR);
   Wire.write(1 << i);
   Wire.endTransmission();
-  delay(1);
+    
 }
 
 void PeanutKing_RescueSumo::colorSensorInit(uint8_t i) {
@@ -123,6 +123,7 @@ colorSensor_t PeanutKing_RescueSumo::readcolorSensor(uint8_t i) {
 
 color_t PeanutKing_RescueSumo::readAdvColor(uint8_t i) {
   colorSensor_t cs = readcolorSensor(i);
+
   rgb_t in = {cs.r, cs.g, cs.b};
 
   hsv_t op = rgb2hsv(in);
@@ -133,10 +134,11 @@ color_t PeanutKing_RescueSumo::readAdvColor(uint8_t i) {
   Serial.print("  V:");
   Serial.println( op.v );
 
-  if ( op.v < 250 )                    return black;
-  else if ( op.s < 10 && op.v > 800 )  return white;
-  else if ( op.h < 15 || op.h > 315 )  return red;
+  if ( op.v < 60 && op.s < 50  )     return black;
   else if ( op.h < 80 )                return yellow;
+  else if ( op.s < 50 && op.v > 60 )  return white;
+  else if ( op.h < 15 || op.h > 315 )  return red;
+  
   else if ( op.h < 150 )               return green;
   else                                 return blue;
 
@@ -265,12 +267,14 @@ void PeanutKing_RescueSumo::enable() {
     AEN triggers an automatic integration, so if a read RGBC is
     performed too quickly, the data is not yet valid and all 0's are
     returned */
+
   switch (_tcs34725IntegrationTime) {
   case TCS34725_INTEGRATIONTIME_2_4MS:
     delay(3);
     break;
   case TCS34725_INTEGRATIONTIME_24MS:
     delay(24);
+	
     break;
   case TCS34725_INTEGRATIONTIME_50MS:
     delay(50);
