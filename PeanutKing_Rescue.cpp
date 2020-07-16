@@ -229,6 +229,8 @@ uint16_t PeanutKing_Rescue::readLaserSensor(uint8_t i) {
 }
 
 colorSensor_t PeanutKing_Rescue::readcolorSensor(uint8_t i) {
+  static uint32_t colorTimer[4] = {0};
+
   uint16_t r, g, b, c, colorTemp, lux;
   uint8_t idx = 0;
 
@@ -244,11 +246,13 @@ colorSensor_t PeanutKing_Rescue::readcolorSensor(uint8_t i) {
 
   tcaselect(idx);
 
-  getRawData(&r, &g, &b, &c, i);
-  colorTemp = calculateColorTemperature_dn40(r, g, b, c);
-  lux = calculateLux(r, g, b);
-  colorSensor_t s = {r, g, b, c, colorTemp, lux};
-  return s;
+  if ( millis() - colorTimer[i] > 24 ) {
+    getRawData(&r, &g, &b, &c);
+    colorTemp = calculateColorTemperature_dn40(r, g, b, c);
+    lux = calculateLux(r, g, b);
+    colorSensor_t s = {r, g, b, c, colorTemp, lux};
+    return s;
+  }
 }
 
 color_t PeanutKing_Rescue::readAdvColor(uint8_t i) {

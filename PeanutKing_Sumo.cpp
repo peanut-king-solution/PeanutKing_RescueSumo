@@ -74,6 +74,8 @@ uint16_t PeanutKing_Sumo::readLaserSensor(uint8_t i) {
 }
 
 colorSensor_t PeanutKing_Sumo::readcolorSensor(uint8_t i) {
+  static uint32_t colorTimer[4] = {0};
+
   uint16_t r, g, b, c, colorTemp, lux;
   uint8_t idx = 0;
 
@@ -86,11 +88,15 @@ colorSensor_t PeanutKing_Sumo::readcolorSensor(uint8_t i) {
 
   tcaselect(idx);
 
-  getRawData(&r, &g, &b, &c, i);
-  colorTemp = calculateColorTemperature_dn40(r, g, b, c);
-  lux = calculateLux(r, g, b);
-  colorSensor_t s = {r, g, b, c, colorTemp, lux};
-  return s;
+  if ( millis() - colorTimer[i] > 24 ) {
+    colorTimer[i] = millis();
+    getRawData(&r, &g, &b, &c);
+    colorTemp = calculateColorTemperature_dn40(r, g, b, c);
+    lux = calculateLux(r, g, b);
+
+    colorSensor_t s = {r, g, b, c, colorTemp, lux};
+    return s;
+  }
 }
 
 color_t PeanutKing_Sumo::readAdvColor(uint8_t i) {
@@ -111,7 +117,7 @@ color_t PeanutKing_Sumo::readAdvColor(uint8_t i) {
   else if ( op.s < 50 && op.v > 60 )    return white;
   else if ( op.h < 15 || op.h > 315 )   return red;
   
-  else if ( op.h < 150 )                return green;
+  else if ( op.h < 180 )                return green;
   else                                  return blue;
 
 }
