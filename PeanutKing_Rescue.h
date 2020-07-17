@@ -27,11 +27,8 @@ class PeanutKing_Rescue : public PeanutKing_RescueSumo {
 
   uint16_t readLaserSensor(uint8_t i);
   // Constant  ===========================================================
-  const int8_t  compass_address = 8;
 
   const uint8_t
-    GET_READING = 0x55,
-    SET_HOME    = 0x54,
     tcanRstPin  = 53,
     tcsblPin    = 51,
 

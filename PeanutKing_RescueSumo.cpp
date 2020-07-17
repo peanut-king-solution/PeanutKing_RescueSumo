@@ -115,6 +115,38 @@ void PeanutKing_RescueSumo::stepperMove(uint8_t i, int32_t val) {
   stepperMotor[i].t = millis();
 }
 
+// rawCompass -----------------------------------------------------
+float PeanutKing_RescueSumo::rawCompass(int8_t addr, int8_t cmd) {
+  uint8_t received_byte[3] = {0,0,0};
+  uint8_t i=0;
+  uint16_t temp=0;
+  float answer = 888;
+  Wire.beginTransmission(addr);
+  Wire.write(cmd);
+  Wire.endTransmission();
+  Wire.requestFrom(addr, 3);
+  while (Wire.available()) {
+    received_byte[i++] = Wire.read();
+  }
+  temp  = received_byte[1] & 0xFF;
+  temp |= (received_byte[2] << 8);
+  answer = temp/100.0;
+
+  return answer;
+}
+
+// compassRead ----------------------------------------------------
+uint16_t PeanutKing_RescueSumo::compassRead(void) {
+  uint8_t compass = rawCompass(compass_address, GET_READING);
+  
+  //rawAccel compass_address, 0x57
+  //rawGyro  compass_address, 0x56
+  //rawCompass66  16, 0x55
+// Software Set Compass Home -------------------------------------
+  //setHome  compass_address, SET_HOME
+  return compass;
+}
+
 /* =============================================================================
  *                             Color sensor TCS34725
  * ============================================================================= */

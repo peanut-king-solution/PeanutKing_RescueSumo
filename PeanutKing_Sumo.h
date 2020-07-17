@@ -24,11 +24,8 @@ class PeanutKing_Sumo : public PeanutKing_RescueSumo {
   void motorSet(uint8_t motor_no, int16_t speed);
 
   // Constant  ===========================================================
-  const int8_t  compass_address = 8;
 
   const uint8_t
-    GET_READING = 0x55,
-    SET_HOME    = 0x54,
     tcanRstPin  = 40,
     tcsblPin    = 41,
 

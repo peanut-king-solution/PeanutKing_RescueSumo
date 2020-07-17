@@ -272,6 +272,10 @@ class PeanutKing_RescueSumo {
   
   hsv_t rgb2hsv(rgb_t in);
 
+
+  float rawCompass(int8_t addr, int8_t cmd);
+  uint16_t compassRead(void);
+
   void tcaselect(uint8_t i);
   void colorSensorInit(uint8_t i);
   void laserSensorInit(uint8_t i);
@@ -346,12 +350,13 @@ class PeanutKing_RescueSumo {
     dirPin[2]   = {8, 13},
     stepPin[2]  = {9, 12},
     servoPin[2] = {11, 10};
-/*
-    pwmPin[4],
-    dir1Pin[4],
-    dir2Pin[4],
-    diagPin[4];
-*/
+  
+  const int8_t  compass_address = 8;
+
+  const uint8_t
+    GET_READING = 0x55,
+    SET_HOME    = 0x54;
+    
 // change this to fit the number of steps per revolution
   int stepsPerRevolution = 25600;
   int stepperSpeed = 100;
