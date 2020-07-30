@@ -29,12 +29,12 @@ class PeanutKing_Sumo : public PeanutKing_RescueSumo {
     tcanRstPin  = 40,
     tcsblPin    = 41,
 
-    dirAPin[2]  = {9, 12},
-    dirBPin[2]  = {8, 11},
+    dirAPin[2]  = {8, 12},
+    dirBPin[2]  = {9, 11},
     pwmPin[2]   = {10, 13},
     diagPin[2]  = {52, 53},
 
-    encoderPin[2][2] = { {23, 22}, {29, 28} };
+    encoderPin[2][2] = { {2, 3}, {19, 18} };
 };
 
 

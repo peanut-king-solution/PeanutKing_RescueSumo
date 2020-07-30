@@ -75,7 +75,7 @@ void PeanutKing_RescueSumo::tcaselect(uint8_t i) {
 void PeanutKing_RescueSumo::colorSensorInit(uint8_t i) {
   tcaselect(i);
   if (tcs34725Begin()) {
-    Serial.println("Found sensor");
+    Serial.println("Found Color sensor");
   } else {
     Serial.println("No TCS34725 found ... check your connections");
   }
@@ -84,7 +84,11 @@ void PeanutKing_RescueSumo::colorSensorInit(uint8_t i) {
 
 void PeanutKing_RescueSumo::laserSensorInit(uint8_t i) {
   tcaselect(i);
-  VL53L0XInit();
+  if (VL53L0XInit()) {
+    Serial.println("Found Laser sensor");
+  } else {
+    Serial.println("No VL53L0X found ... check your connections");
+  }
   setTimeout(500);
   delay(1);
 }
@@ -137,7 +141,7 @@ float PeanutKing_RescueSumo::rawCompass(int8_t addr, int8_t cmd) {
 
 // compassRead ----------------------------------------------------
 uint16_t PeanutKing_RescueSumo::compassRead(void) {
-  uint8_t compass = rawCompass(compass_address, GET_READING);
+  uint16_t compass = rawCompass(compass_address, GET_READING);
   
   //rawAccel compass_address, 0x57
   //rawGyro  compass_address, 0x56

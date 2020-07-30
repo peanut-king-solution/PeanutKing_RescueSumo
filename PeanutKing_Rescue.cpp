@@ -31,8 +31,8 @@ void PeanutKing_Rescue::init(void) {
 // create an instance of the stepper class, specifying
 // the number of steps of the motor and the pins it's
 // attached to
-  servoMotor[0].s.attach(10);    // attaches the servo on pin 9 to the servo object
-  servoMotor[1].s.attach(11);    // attaches the servo on pin 9 to the servo object
+  // servoMotor[0].s.attach(10);    // attaches the servo on pin 9 to the servo object
+  // servoMotor[1].s.attach(11);    // attaches the servo on pin 9 to the servo object
 
   setStepperSpeed(stepperSpeed);
 
@@ -229,7 +229,7 @@ uint16_t PeanutKing_Rescue::readLaserSensor(uint8_t i) {
 }
 
 colorSensor_t PeanutKing_Rescue::readcolorSensor(uint8_t i) {
-  static uint32_t colorTimer[4] = {0};
+  static uint32_t colorTimer[5] = {0};
 
   uint16_t r, g, b, c, colorTemp, lux;
   uint8_t idx = 0;
