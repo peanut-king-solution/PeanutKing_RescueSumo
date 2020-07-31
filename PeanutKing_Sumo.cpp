@@ -90,7 +90,7 @@ uint16_t PeanutKing_Sumo::readLaserSensor(uint8_t i) {
 
 colorSensor_t PeanutKing_Sumo::readcolorSensor(uint8_t i) {
   static uint32_t colorTimer[4] = {0};
-
+  static colorSensor_t s[4];
   uint16_t r, g, b, c, colorTemp, lux;
   uint8_t idx = 0;
 
@@ -109,9 +109,9 @@ colorSensor_t PeanutKing_Sumo::readcolorSensor(uint8_t i) {
     colorTemp = calculateColorTemperature_dn40(r, g, b, c);
     lux = calculateLux(r, g, b);
 
-    colorSensor_t s = {r, g, b, c, colorTemp, lux};
-    return s;
+    s[i] = {r, g, b, c, colorTemp, lux};
   }
+  return s[i];
 }
 
 color_t PeanutKing_Sumo::readAdvColor(uint8_t i) {
@@ -120,12 +120,12 @@ color_t PeanutKing_Sumo::readAdvColor(uint8_t i) {
   rgb_t in = {cs.r, cs.g, cs.b};
 
   hsv_t op = rgb2hsv(in);
-  Serial.print("h:");
-  Serial.print( op.h );
-  Serial.print("  S:");
-  Serial.print( op.s );
-  Serial.print("  V:");
-  Serial.println( op.v );
+  // Serial.print("h:");
+  // Serial.print( op.h );
+  // Serial.print("  S:");
+  // Serial.print( op.s );
+  // Serial.print("  V:");
+  // Serial.println( op.v );
 
   if ( op.v < 60 && op.s < 50  )        return black;
   else if ( op.h < 80 )                 return yellow;
@@ -218,7 +218,7 @@ int16_t PeanutKing_Sumo::Incremental_PID(uint8_t idx, int16_t currentSpeed, int1
 int32_t PeanutKing_Sumo::encoderCounter[2] = {0, 0};
 
 void PeanutKing_Sumo::encode1(void) { 
-  static int16_t aState1, aLastState1;
+  static uint8_t aState1 = 0, aLastState1 = 0;
   aState1 = digitalRead(encoderPin[0][0]);
   if (digitalRead(encoderPin[0][1]) != aState1) {
     encoderCounter[0] ++;
@@ -229,7 +229,7 @@ void PeanutKing_Sumo::encode1(void) {
 }
 
 void PeanutKing_Sumo::encode2(void) { 
-  static int16_t aState2, aLastState2;
+  static uint8_t aState2 = 0, aLastState2 = 0;
   aState2 = digitalRead(encoderPin[1][0]);
   if (digitalRead(encoderPin[1][1]) != aState2) {
     encoderCounter[1] ++;

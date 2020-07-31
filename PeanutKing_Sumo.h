@@ -42,7 +42,7 @@ class PeanutKing_Sumo : public PeanutKing_RescueSumo {
     pwmPin[2]   = {10, 13},
     diagPin[2]  = {52, 53};
 
-  static const uint8_t encoderPin[2][2] = { {19, 18}, {2, 3} };
+  static const uint8_t encoderPin[2][2] = { {19, 18}, {3, 2} };
 
   static int32_t encoderCounter[2];
 
