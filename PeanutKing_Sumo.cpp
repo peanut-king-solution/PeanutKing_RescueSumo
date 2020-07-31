@@ -5,11 +5,15 @@ PeanutKing_Sumo::PeanutKing_Sumo(void)
 {
 }
 
+
+
+
+
 void PeanutKing_Sumo::init(void) {
   Serial.begin(115200);
   //Serial1.begin(9600);
   
-  for (uint8_t i=0; i<4; i++) {
+  for (uint8_t i=0; i<2; i++) {
     pinMode(pwmPin[i],  OUTPUT);
     pinMode(dirAPin[i],  OUTPUT);
     pinMode(dirBPin[i], OUTPUT);
@@ -32,6 +36,18 @@ void PeanutKing_Sumo::init(void) {
   laserSensorInit(1);
   laserSensorInit(3);
   laserSensorInit(7);
+  
+  pinMode (encoderPin[0][0],INPUT_PULLUP); 
+  pinMode (encoderPin[0][1],INPUT_PULLUP);
+  pinMode (encoderPin[1][0],INPUT_PULLUP); 
+  pinMode (encoderPin[1][1],INPUT_PULLUP);
+  
+  // aLastState1 = digitalRead(encoderPin[0][0]);
+  // aLastState2 = digitalRead(encoderPin[1][0]);
+  attachInterrupt(digitalPinToInterrupt(encoderPin[0][0]), encode1, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(encoderPin[1][0]), encode2, CHANGE);
+
+  delay(50);
   
 // create an instance of the stepper class, specifying
 // the number of steps of the motor and the pins it's
@@ -144,5 +160,82 @@ void PeanutKing_Sumo::motorSet(uint8_t motor_no, int16_t speed) {
     digitalWrite(dirBPin[motor_no], HIGH);
     digitalWrite(pwmPin[motor_no], HIGH);
   }
+}
+
+void PeanutKing_Sumo::encoderMotor(int16_t speedL, int16_t speedR) {
+  static uint32_t timer = 0, timeDiff = 0;
+  static int32_t encoderLast[2] = {0}, encoderDiff[2] = {0};
+
+  float spd[2] = {0.0};
+  int16_t targetSpeed[2] = {speedL, speedR};
+
+  timeDiff = micros() - timer;
+
+  if ( timeDiff > interval ) {
+    timer = micros();
+    for (uint8_t i=0; i<2; i++) {
+      encoderDiff[i] = encoderCounter[i] - encoderLast[i];
+      spd[i] = interval * scale * encoderDiff[i] / timeDiff;
+
+      int16_t realSpd = Incremental_PID(i, spd[i], targetSpeed[i]);
+      motorSet(i, realSpd);
+      
+      encoderLast[i] = encoderCounter[i];
+    }
+  }
+}
+
+
+int16_t PeanutKing_Sumo::Incremental_PID(uint8_t idx, int16_t currentSpeed, int16_t targetSpeed){
+  const float kp=2,ki=0.6,kd=2.5;  // PID
+  static float 
+    pwm[2] = {0},
+    last_bias[2],
+    prev_bias[2];
+  
+  float bias = currentSpeed - targetSpeed;            
+  
+  pwm[idx] -= (
+    kp * (bias-last_bias[idx]) + 
+    ki * bias +
+    kd * (bias-2*last_bias[idx]+prev_bias[idx])
+  );   //
+  
+  prev_bias[idx]=last_bias[idx];  //
+  last_bias[idx]=bias;       //
+  
+  if (pwm[idx]<-250) {
+    pwm[idx]=250;     
+  }
+  if (pwm[idx]>250) {
+    pwm[idx]=250;  
+  }
+  //Serial.println(pwm[idx]);
+  return pwm[idx];           //
+}
+
+
+int32_t PeanutKing_Sumo::encoderCounter[2] = {0, 0};
+
+void PeanutKing_Sumo::encode1(void) { 
+  static int16_t aState1, aLastState1;
+  aState1 = digitalRead(encoderPin[0][0]);
+  if (digitalRead(encoderPin[0][1]) != aState1) {
+    encoderCounter[0] ++;
+  } else {
+    encoderCounter[0] --;
+  }
+  aLastState1 = aState1;
+}
+
+void PeanutKing_Sumo::encode2(void) { 
+  static int16_t aState2, aLastState2;
+  aState2 = digitalRead(encoderPin[1][0]);
+  if (digitalRead(encoderPin[1][1]) != aState2) {
+    encoderCounter[1] ++;
+  } else {
+    encoderCounter[1] --;
+  }
+  aLastState2 = aState2;
 }
 
