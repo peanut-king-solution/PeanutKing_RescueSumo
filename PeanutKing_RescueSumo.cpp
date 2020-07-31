@@ -3,13 +3,16 @@
 static PeanutKing_RescueSumo *sumoRobot = NULL;
 
 PeanutKing_RescueSumo::PeanutKing_RescueSumo(void) :
-  address(ADDRESS_DEFAULT),
   io_timeout(0), // no timeout
   did_timeout(false),
   _tcs34725Initialised(false),
   _tcs34725IntegrationTime(TCS34725_INTEGRATIONTIME_24MS),
   _tcs34725Gain(TCS34725_GAIN_1X)
   {
+  i2cHandleSelector  = nI2C->RegisterDevice(compass_address, 1, CI2C::Speed::SLOW);
+  i2cHandleSelector = nI2C->RegisterDevice(TCAADDR, 1, CI2C::Speed::SLOW);
+  i2cHandleLaser    = nI2C->RegisterDevice(ADDRESS_DEFAULT, 1, CI2C::Speed::SLOW);
+  i2cHandleColor    = nI2C->RegisterDevice(TCS34725_ADDRESS, 1, CI2C::Speed::SLOW);
   if (sumoRobot == NULL)  {
     sumoRobot = this;
   }
@@ -65,16 +68,14 @@ hsv_t PeanutKing_RescueSumo::rgb2hsv(rgb_t in) {
 
 void PeanutKing_RescueSumo::tcaselect(uint8_t i) {
   if (i > 7) return;
-
-  Wire.beginTransmission(TCAADDR);
-  Wire.write(1 << i);
-  Wire.endTransmission();
-    
+  char message[1];
+  message[0]=(1 << i);
+  nI2C->Write(i2cHandleSelector, message, 1);
 }
 
 void PeanutKing_RescueSumo::colorSensorInit(uint8_t i) {
   tcaselect(i);
-  if (tcs34725Begin()) {
+  if (tcs34725Init()) {
     Serial.println("Found Color sensor");
   } else {
     Serial.println("No TCS34725 found ... check your connections");
@@ -125,13 +126,12 @@ float PeanutKing_RescueSumo::rawCompass(int8_t addr, int8_t cmd) {
   uint8_t i=0;
   uint16_t temp=0;
   float answer = 888;
-  Wire.beginTransmission(addr);
-  Wire.write(cmd);
-  Wire.endTransmission();
-  Wire.requestFrom(addr, 3);
-  while (Wire.available()) {
-    received_byte[i++] = Wire.read();
-  }
+  byte buf[1];
+  buf[0]=cmd;
+  
+  nI2C->Write(i2cHandleSelector, buf, 1);
+  nI2C->Read(i2cHandleSelector,  (uint8_t*)received_byte, 3);
+
   temp  = received_byte[1] & 0xFF;
   temp |= (received_byte[2] << 8);
   answer = temp/100.0;
@@ -173,15 +173,8 @@ float powf(const float x, const float y) {
  *  @param  value
  */
 void PeanutKing_RescueSumo::write8(uint8_t reg, uint32_t value) {
-  _wire->beginTransmission(_i2caddr);
-#if ARDUINO >= 100
-  _wire->write(TCS34725_COMMAND_BIT | reg);
-  _wire->write(value & 0xFF);
-#else
-  _wire->send(TCS34725_COMMAND_BIT | reg);
-  _wire->send(value & 0xFF);
-#endif
-  _wire->endTransmission();
+  byte buf[2]={TCS34725_COMMAND_BIT | reg, value & 0xFF};
+	nI2C->Write(i2cHandleColor,buf, 2);
 }
 
 /*!
@@ -190,20 +183,11 @@ void PeanutKing_RescueSumo::write8(uint8_t reg, uint32_t value) {
  *  @return value
  */
 uint8_t PeanutKing_RescueSumo::read8(uint8_t reg) {
-  _wire->beginTransmission(_i2caddr);
-#if ARDUINO >= 100
-  _wire->write(TCS34725_COMMAND_BIT | reg);
-#else
-  _wire->send(TCS34725_COMMAND_BIT | reg);
-#endif
-  _wire->endTransmission();
-
-  _wire->requestFrom(_i2caddr, (uint8_t)1);
-#if ARDUINO >= 100
-  return _wire->read();
-#else
-  return _wire->receive();
-#endif
+  uint8_t buf[1]={TCS34725_COMMAND_BIT | reg};
+  uint8_t value[1];
+  nI2C->Write(i2cHandleColor,buf, 1);
+  nI2C->Read(i2cHandleColor, (uint8_t*)value, 1); 
+  return value[0];
 }
 
 /*!
@@ -214,23 +198,12 @@ uint8_t PeanutKing_RescueSumo::read8(uint8_t reg) {
 uint16_t PeanutKing_RescueSumo::read16(uint8_t reg) {
   uint16_t x;
   uint16_t t;
-
-  _wire->beginTransmission(_i2caddr);
-#if ARDUINO >= 100
-  _wire->write(TCS34725_COMMAND_BIT | reg);
-#else
-  _wire->send(TCS34725_COMMAND_BIT | reg);
-#endif
-  _wire->endTransmission();
-
-  _wire->requestFrom(_i2caddr, (uint8_t)2);
-#if ARDUINO >= 100
-  t = _wire->read();
-  x = _wire->read();
-#else
-  t = _wire->receive();
-  x = _wire->receive();
-#endif
+  byte buf[1]={TCS34725_COMMAND_BIT | reg};
+  byte value[2];
+  nI2C->Write(i2cHandleColor,buf, 1);
+  nI2C->Read(i2cHandleColor, (uint8_t*)value, 2); 
+  t=value[0];
+  x=value[1];
   x <<= 8;
   x |= t;
   return x;
@@ -284,51 +257,15 @@ void PeanutKing_RescueSumo::disable() {
 }
 
 
-/*!
- *  @brief  Initializes I2C and configures the sensor
- *  @param  addr
- *          i2c address
- *  @return True if initialization was successful, otherwise false.
- */
-boolean PeanutKing_RescueSumo::tcs34725Begin(uint8_t addr) {
-  _i2caddr = addr;
-  _wire = &Wire;
 
-  return tcs34725Init();
-}
+
+
 
 /*!
  *  @brief  Initializes I2C and configures the sensor
- *  @param  addr
- *          i2c address
- *  @param  *theWire
- *          The Wire object
- *  @return True if initialization was successful, otherwise false.
- */
-boolean PeanutKing_RescueSumo::tcs34725Begin(uint8_t addr, TwoWire *theWire) {
-  _i2caddr = addr;
-  _wire = theWire;
-
-  return tcs34725Init();
-}
-
-/*!
- *  @brief  Initializes I2C and configures the sensor
- *  @return True if initialization was successful, otherwise false.
- */
-boolean PeanutKing_RescueSumo::tcs34725Begin() {
-  _i2caddr = TCS34725_ADDRESS;
-  _wire = &Wire;
-
-  return tcs34725Init();
-}
-
-/*!
- *  @brief  Part of begin
  *  @return True if initialization was successful, otherwise false.
  */
 boolean PeanutKing_RescueSumo::tcs34725Init() {
-  _wire->begin();
 
   /* Make sure we're actually connected */
   uint8_t x = read8(TCS34725_ID);
@@ -646,13 +583,8 @@ void PeanutKing_RescueSumo::setInterrupt(boolean i) {
  *  @brief  Clears inerrupt for TCS34725
  */
 void PeanutKing_RescueSumo::clearInterrupt() {
-  _wire->beginTransmission(_i2caddr);
-#if ARDUINO >= 100
-  _wire->write(TCS34725_COMMAND_BIT | 0x66);
-#else
-  _wire->send(TCS34725_COMMAND_BIT | 0x66);
-#endif
-  _wire->endTransmission();
+	byte buf[1]={TCS34725_COMMAND_BIT | 0x66};
+	nI2C->Write(i2cHandleColor, buf, 1);
 }
 
 /*!
@@ -734,7 +666,7 @@ bool PeanutKing_RescueSumo::VL53L0XInit(bool io_2v8)
   // GLOBAL_CONFIG_SPAD_ENABLES_REF_0 through _6, so read it from there
   uint8_t ref_spad_map[6];
   readMulti(GLOBAL_CONFIG_SPAD_ENABLES_REF_0, ref_spad_map, 6);
-
+  
   // -- VL53L0X_set_reference_spads() begin (assume NVM values are valid)
 
   writeReg(0xFF, 0x01);
@@ -915,46 +847,38 @@ bool PeanutKing_RescueSumo::VL53L0XInit(bool io_2v8)
 // Write an 8-bit register
 void PeanutKing_RescueSumo::writeReg(uint8_t reg, uint8_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write(value);
-  last_status = Wire.endTransmission();
+	byte buf[2]={reg, value};
+  nI2C->Write(i2cHandleLaser, buf, 2);
 }
 
 // Write a 16-bit register
 void PeanutKing_RescueSumo::writeReg16Bit(uint8_t reg, uint16_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write((value >> 8) & 0xFF); // value high byte
-  Wire.write( value       & 0xFF); // value low byte
-  last_status = Wire.endTransmission();
+  byte buf [3]= {reg, (value >> 8) & 0xFF, value & 0xFF};
+  nI2C->Write(i2cHandleLaser, buf, 3);
 }
 
 // Write a 32-bit register
 void PeanutKing_RescueSumo::writeReg32Bit(uint8_t reg, uint32_t value)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  Wire.write((value >> 24) & 0xFF); // value highest byte
-  Wire.write((value >> 16) & 0xFF);
-  Wire.write((value >>  8) & 0xFF);
-  Wire.write( value        & 0xFF); // value lowest byte
-  last_status = Wire.endTransmission();
+  byte buf[5]= {
+    reg,
+    (value >> 24) & 0xFF,
+    (value >> 16) & 0xFF,
+    (value >>  8) & 0xFF,
+    value & 0xFF
+  };
+  nI2C->Write(i2cHandleLaser, buf, 5);
 }
 
 // Read an 8-bit register
 uint8_t PeanutKing_RescueSumo::readReg(uint8_t reg)
 {
-  uint8_t value;
-
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
-
-  Wire.requestFrom(address, (uint8_t)1);
-  value = Wire.read();
-
+  uint8_t data[1],value;
+  uint8_t buf[1]={reg};
+  nI2C->Write(i2cHandleLaser,buf, 1);
+  nI2C->Read(i2cHandleLaser,  (uint8_t*)data, 1); 
+  value = data[0];
   return value;
 }
 
@@ -962,15 +886,12 @@ uint8_t PeanutKing_RescueSumo::readReg(uint8_t reg)
 uint16_t PeanutKing_RescueSumo::readReg16Bit(uint8_t reg)
 {
   uint16_t value;
-
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
-
-  Wire.requestFrom(address, (uint8_t)2);
-  value  = (uint16_t)Wire.read() << 8; // value high byte
-  value |=           Wire.read();      // value low byte
-
+  byte buf [2],regadd[1];
+  regadd[0]=reg;
+  nI2C->Write(uint8_t,regadd, 1);
+  nI2C->Read(i2cHandleLaser,  (uint8_t*)buf, 2); 
+  value =  (uint16_t)buf[0]<<8;
+  value |= buf[1];
   return value;
 }
 
@@ -978,17 +899,15 @@ uint16_t PeanutKing_RescueSumo::readReg16Bit(uint8_t reg)
 uint32_t PeanutKing_RescueSumo::readReg32Bit(uint8_t reg)
 {
   uint16_t value;
-
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
-
-  Wire.requestFrom(address, (uint8_t)4);
-  value  = (uint32_t)Wire.read() << 24; // value highest byte
-  value |= (uint32_t)Wire.read() << 16;
-  value |= (uint16_t)Wire.read() <<  8;
-  value |=           Wire.read();       // value lowest byte
-
+  
+  byte buf [4],regadd[1];
+  regadd[0]=reg;
+  nI2C->Write(uint8_t,regadd, 1);
+  nI2C->Read(i2cHandleLaser,  (uint8_t*)buf, 4); 
+  value =  (uint32_t)buf[0] << 24;
+  value |= (uint32_t)buf[1] << 16;
+  value |= (uint16_t)buf[2] <<  8;
+  value |= buf[3] ;
   return value;
 }
 
@@ -996,30 +915,32 @@ uint32_t PeanutKing_RescueSumo::readReg32Bit(uint8_t reg)
 // starting at the given register
 void PeanutKing_RescueSumo::writeMulti(uint8_t reg, uint8_t const * src, uint8_t count)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-
+  int i=0;
+	byte buf[count],regadd[1];
+	uint8_t size=count;
+	regadd[0]=reg;
   while (count-- > 0)
   {
-    Wire.write(*(src++));
+    buf[i]= *(src++);
+    i++;
   }
-
-  last_status = Wire.endTransmission();
+  nI2C->Write(i2cHandleLaser,reg, &buf[0], size);
 }
 
 // Read an arbitrary number of bytes from the sensor, starting at the given
 // register, into the given array
 void PeanutKing_RescueSumo::readMulti(uint8_t reg, uint8_t * dst, uint8_t count)
 {
-  Wire.beginTransmission(address);
-  Wire.write(reg);
-  last_status = Wire.endTransmission();
-
-  Wire.requestFrom(address, count);
+	byte buf[count],regadd[1];
+	int i=0;
+	regadd[0]=reg;
+  nI2C->Write(i2cHandleLaser, reg,1);
+  nI2C->Read(i2cHandleLaser, (uint8_t*)buf, count);
 
   while (count-- > 0)
   {
-    *(dst++) = Wire.read();
+    *(dst++) = buf[i];
+	  i++;
   }
 }
 
@@ -1526,10 +1447,12 @@ bool PeanutKing_RescueSumo::getSpadInfo(uint8_t * count, bool * type_is_aperture
   writeReg(0x94, 0x6b);
   writeReg(0x83, 0x00);
   startTimeout();
+  
   while (readReg(0x83) == 0x00)
   {
     if (checkTimeoutExpired()) { return false; }
   }
+  
   writeReg(0x83, 0x01);
   tmp = readReg(0x92);
 

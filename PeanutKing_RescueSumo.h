@@ -2,15 +2,20 @@
 #define PeanutKing_RescueSumo_H
 
 #include <Arduino.h>
-#include <Wire.h>
+// #include <Wire.h>
 
 #include <Stepper.h>
 #include <Servo.h>
 
-//#include <math.h>
-//#include <stdlib.h>
+#include <nI2C.h>
+// #include <I2C.h>
+
+// #include <math.h>
+// #include <stdlib.h>
 
 #define TCAADDR 0x70
+
+
 
 // Defines /////////////////////////////////////////////////////////////////////
 
@@ -287,7 +292,7 @@ class PeanutKing_RescueSumo {
 
 
   // tcs34725
-  bool tcs34725Begin(uint8_t addr, TwoWire *theWire);
+ // bool tcs34725Begin(uint8_t addr, TwoWire *theWire);
   bool tcs34725Begin(uint8_t addr);
   bool tcs34725Begin();
   bool tcs34725Init();
@@ -356,7 +361,11 @@ class PeanutKing_RescueSumo {
   const uint8_t
     GET_READING = 0x55,
     SET_HOME    = 0x54;
-    
+
+  CI2C::Handle i2cHandleCompass;
+  CI2C::Handle i2cHandleSelector;
+  CI2C::Handle i2cHandleLaser;
+  CI2C::Handle i2cHandleColor;
 // change this to fit the number of steps per revolution
   int stepsPerRevolution = 25600;
   int stepperSpeed = 100;
@@ -391,8 +400,6 @@ class PeanutKing_RescueSumo {
     uint8_t last_status; // status of last I2C transmission
     
   private:
-    TwoWire *_wire;
-    uint8_t _i2caddr;
     boolean _tcs34725Initialised;
     tcs34725Gain_t _tcs34725Gain;
     tcs34725IntegrationTime_t _tcs34725IntegrationTime;
@@ -412,7 +419,6 @@ class PeanutKing_RescueSumo {
       uint32_t msrc_dss_tcc_us,    pre_range_us,    final_range_us;
     };
 
-    uint8_t address;
     uint16_t io_timeout;
     bool did_timeout;
     uint16_t timeout_start_ms;

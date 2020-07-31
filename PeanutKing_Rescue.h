@@ -23,6 +23,7 @@ class PeanutKing_Rescue : public PeanutKing_RescueSumo {
     moveLeft(uint8_t spd = 1);
 
   color_t readAdvColor(uint8_t i);
+  hsv_t readbrightless(uint8_t i) ;
   colorSensor_t readcolorSensor(uint8_t i);
 
   uint16_t readLaserSensor(uint8_t i);

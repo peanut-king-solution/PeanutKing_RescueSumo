@@ -6,7 +6,6 @@ PeanutKing_Sumo::PeanutKing_Sumo(void)
 }
 
 void PeanutKing_Sumo::init(void) {
-  Wire.begin();
   Serial.begin(115200);
   //Serial1.begin(9600);
   

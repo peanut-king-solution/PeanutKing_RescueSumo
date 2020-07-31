@@ -6,10 +6,8 @@ PeanutKing_Rescue::PeanutKing_Rescue(void)
 }
 
 void PeanutKing_Rescue::init(void) {
-  Wire.begin();
   Serial.begin(115200);
-  //Serial1.begin(9600);
-  
+
   digitalWrite(tcanRstPin, HIGH);
 
   ledSetup(1, tcsblPin, 1);
@@ -26,13 +24,14 @@ void PeanutKing_Rescue::init(void) {
   laserSensorInit(0);
   laserSensorInit(3);
   laserSensorInit(7);
+  
   stepperSpeed = 100;
   
 // create an instance of the stepper class, specifying
 // the number of steps of the motor and the pins it's
 // attached to
-  // servoMotor[0].s.attach(10);    // attaches the servo on pin 9 to the servo object
-  // servoMotor[1].s.attach(11);    // attaches the servo on pin 9 to the servo object
+  servoMotor[0].s.attach(10);    // attaches the servo on pin 9 to the servo object
+  servoMotor[1].s.attach(11);    // attaches the servo on pin 9 to the servo object
 
   setStepperSpeed(stepperSpeed);
 
@@ -149,14 +148,16 @@ void PeanutKing_Rescue::moveRight(uint8_t spd) {
   //TCCR1B = TCCR1B & B11111000 | B00000100;    // set timer 1 divisor to   256 for PWM frequency of   122.55 Hz
   //TCCR1B = TCCR1B & B11111000 | B00000101;    // set timer 1 divisor to  1024 for PWM frequency of    30.64 Hz
 
-  switch(spd) {
+  switch(spd) {		//rotation
     case 0:
-      TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
-      TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
+      TCCR2B = TCCR2B & B11111000 | B00000101;    // set timer 2 divisor to   128 for PWM frequency of   245.10 Hz
+	    TCCR1B = TCCR1B & B11111000 | B00000010;    // set timer 1 divisor to     8 for PWM frequency of  3921.16 Hz
+	    //TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
+      //TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
       break;
-    case 1:
-		TCCR2B = TCCR2B & B11111000 | B00000100; 	// set timer 2 divisor to    64 for PWM frequency of   490.20 Hz//rightmotor
-    //  TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
+    case 1:    //turning
+		  TCCR2B = TCCR2B & B11111000 | B00000100; 	// set timer 2 divisor to    64 for PWM frequency of   490.20 Hz//rightmotor
+      //  TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
       TCCR1B = TCCR1B & B11111000 | B00000010;    // set timer 1 divisor to     8 for PWM frequency of  3921.16 Hz //leftmotor
       break;
   }
@@ -188,8 +189,10 @@ void PeanutKing_Rescue::moveLeft(uint8_t spd) {
 
   switch(spd) {
     case 0:
-      TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
-      TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
+      TCCR2B = TCCR2B & B11111000 | B00000010;    // set timer 2 divisor to     8 for PWM frequency of  3921.16 Hz
+      TCCR1B = TCCR1B & B11111000 | B00000101;    // set timer 2 divisor to   128 for PWM frequency of   245.10 Hz
+      //TCCR2B = TCCR2B & B11111000 | B00000100;    // set timer 2 divisor to    64 for PWM frequency of   490.20 Hz
+      //TCCR1B = TCCR1B & B11111000 | B00000011;    // set timer 1 divisor to    64 for PWM frequency of   490.20 Hz
       break;
     case 1:
 		 
@@ -278,7 +281,12 @@ color_t PeanutKing_Rescue::readAdvColor(uint8_t i) {
 
 }
 
-
+hsv_t PeanutKing_Rescue::readbrightless(uint8_t i) {
+  colorSensor_t cs = readcolorSensor(i);
+  rgb_t in = {cs.r, cs.g, cs.b};
+  hsv_t op = rgb2hsv(in);
+  return op ;
+}
 
 
 
