@@ -290,9 +290,6 @@ boolean PeanutKing_RescueSumo::tcs34725Init() {
  *          Integration Time
  */
 void PeanutKing_RescueSumo::setIntegrationTime(tcs34725IntegrationTime_t it) {
-  if (!_tcs34725Initialised)
-    tcs34725Begin();
-
   /* Update the timing register */
   write8(TCS34725_ATIME, it);
 
@@ -306,9 +303,6 @@ void PeanutKing_RescueSumo::setIntegrationTime(tcs34725IntegrationTime_t it) {
  *          Gain (sensitivity to light)
  */
 void PeanutKing_RescueSumo::setGain(tcs34725Gain_t gain) {
-  if (!_tcs34725Initialised)
-    tcs34725Begin();
-
   /* Update the timing register */
   write8(TCS34725_CONTROL, gain);
 
@@ -328,9 +322,6 @@ void PeanutKing_RescueSumo::setGain(tcs34725Gain_t gain) {
  *          Clear channel value
  */
 void PeanutKing_RescueSumo::getRawData(uint16_t *r, uint16_t *g, uint16_t *b, uint16_t *c) {
-  if (!_tcs34725Initialised)
-    tcs34725Begin();
-
     *c = read16(TCS34725_CDATAL);
     *r = read16(TCS34725_RDATAL);
     *g = read16(TCS34725_GDATAL);
@@ -374,9 +365,6 @@ void PeanutKing_RescueSumo::getRawData(uint16_t *r, uint16_t *g, uint16_t *b, ui
  */
 void PeanutKing_RescueSumo::getRawDataOneShot(uint16_t *r, uint16_t *g, uint16_t *b,
                                           uint16_t *c) {
-  if (!_tcs34725Initialised)
-    tcs34725Begin();
-
   enable();
   getRawData(r, g, b, c);
   disable();
@@ -608,12 +596,6 @@ void PeanutKing_RescueSumo::setIntLimits(uint16_t low, uint16_t high) {
 
 
 // Public Methods //////////////////////////////////////////////////////////////
-
-void PeanutKing_RescueSumo::setAddress(uint8_t new_addr)
-{
-  writeReg(I2C_SLAVE_DEVICE_ADDRESS, new_addr & 0x7F);
-  address = new_addr;
-}
 
 // Initialize sensor using sequence based on VL53L0X_DataInit(),
 // VL53L0X_StaticInit(), and VL53L0X_PerformRefCalibration().
@@ -888,7 +870,7 @@ uint16_t PeanutKing_RescueSumo::readReg16Bit(uint8_t reg)
   uint16_t value;
   byte buf [2],regadd[1];
   regadd[0]=reg;
-  nI2C->Write(uint8_t,regadd, 1);
+  nI2C->Write(i2cHandleLaser,regadd, 1);
   nI2C->Read(i2cHandleLaser,  (uint8_t*)buf, 2); 
   value =  (uint16_t)buf[0]<<8;
   value |= buf[1];
@@ -902,7 +884,7 @@ uint32_t PeanutKing_RescueSumo::readReg32Bit(uint8_t reg)
   
   byte buf [4],regadd[1];
   regadd[0]=reg;
-  nI2C->Write(uint8_t,regadd, 1);
+  nI2C->Write(i2cHandleLaser,regadd, 1);
   nI2C->Read(i2cHandleLaser,  (uint8_t*)buf, 4); 
   value =  (uint32_t)buf[0] << 24;
   value |= (uint32_t)buf[1] << 16;

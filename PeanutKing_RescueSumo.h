@@ -315,8 +315,6 @@ class PeanutKing_RescueSumo {
   void disable();
 
   // VL53L0X
-  void setAddress(uint8_t new_addr);
-  inline uint8_t getAddress(void) { return address; }
 
   bool VL53L0XInit(bool io_2v8 = true);
 
