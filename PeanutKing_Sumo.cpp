@@ -204,8 +204,8 @@ int16_t PeanutKing_Sumo::Incremental_PID(uint8_t idx, int16_t currentSpeed, int1
   prev_bias[idx]=last_bias[idx];  //
   last_bias[idx]=bias;       //
   
-  if (pwm[idx]<-250) {
-    pwm[idx]=250;     
+  if (pwm[idx]< -250) {
+    pwm[idx]=-250;     
   }
   if (pwm[idx]>250) {
     pwm[idx]=250;  
