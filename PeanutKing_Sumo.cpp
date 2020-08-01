@@ -47,7 +47,7 @@ void PeanutKing_Sumo::init(void) {
   attachInterrupt(digitalPinToInterrupt(encoderPin[0][0]), encode1, CHANGE);
   attachInterrupt(digitalPinToInterrupt(encoderPin[1][0]), encode2, CHANGE);
 
-  delay(50);
+  delay(10);
   
 // create an instance of the stepper class, specifying
 // the number of steps of the motor and the pins it's
@@ -163,79 +163,137 @@ void PeanutKing_Sumo::motorSet(uint8_t motor_no, int16_t speed) {
 }
 
 void PeanutKing_Sumo::encoderMotor(int16_t speedL, int16_t speedR) {
-  static uint32_t timer = 0, timeDiff = 0;
-  static int32_t encoderLast[2] = {0}, encoderDiff[2] = {0};
+  targetSpeed[0] = speedL;
+  targetSpeed[1] = speedR;
 
-  float spd[2] = {0.0};
-  int16_t targetSpeed[2] = {speedL, speedR};
+  // static uint32_t timer = 0, timeDiff = 0;
+  // static int32_t encoderLast[2] = {0}, encoderDiff[2] = {0};
 
-  timeDiff = micros() - timer;
+  // float spd[2] = {0.0};
+  // int16_t targetSpeed[2] = {speedL, speedR};
 
-  if ( timeDiff > interval ) {
-    timer = micros();
-    for (uint8_t i=0; i<2; i++) {
-      encoderDiff[i] = encoderCounter[i] - encoderLast[i];
-      spd[i] = interval * scale * encoderDiff[i] / timeDiff;
+  // timeDiff = micros() - timer;
 
-      int16_t realSpd = Incremental_PID(i, spd[i], targetSpeed[i]);
-      motorSet(i, realSpd);
+  // if ( timeDiff > interval ) {
+  //   timer = micros();
+  //   for (uint8_t i=0; i<2; i++) {
+  //     encoderDiff[i] = encoderCounter[i] - encoderLast[i];
+  //     spd[i] = interval * scale * encoderDiff[i] / timeDiff;
+
+  //     int16_t realSpd = Incremental_PID(i, spd[i], targetSpeed[i]);
+  //     motorSet(i, realSpd);
       
-      encoderLast[i] = encoderCounter[i];
-    }
-  }
+  //     encoderLast[i] = encoderCounter[i];
+  //   }
+  // }
 }
 
 
-int16_t PeanutKing_Sumo::Incremental_PID(uint8_t idx, int16_t currentSpeed, int16_t targetSpeed){
-  const float kp=2,ki=0.6,kd=2.5;  // PID
-  static float 
-    pwm[2] = {0},
-    last_bias[2],
-    prev_bias[2];
-  
-  float bias = currentSpeed - targetSpeed;            
-  
-  pwm[idx] -= (
-    kp * (bias-last_bias[idx]) + 
-    ki * bias +
-    kd * (bias-2*last_bias[idx]+prev_bias[idx])
-  );   //
-  
-  prev_bias[idx]=last_bias[idx];  //
-  last_bias[idx]=bias;       //
-  
-  if (pwm[idx]< -250) {
-    pwm[idx]=-250;     
-  }
-  if (pwm[idx]>250) {
-    pwm[idx]=250;  
-  }
-  //Serial.println(pwm[idx]);
-  return pwm[idx];           //
-}
-
-
-int32_t PeanutKing_Sumo::encoderCounter[2] = {0, 0};
+int32_t PeanutKing_Sumo::encoderCounter[2]  = {0, 0};
+int16_t PeanutKing_Sumo::targetSpeed[2]     = {0, 0};
+float   PeanutKing_Sumo::currentSpeed[2]   = {0.0, 0.0};
 
 void PeanutKing_Sumo::encode1(void) { 
-  static uint8_t aState1 = 0, aLastState1 = 0;
-  aState1 = digitalRead(encoderPin[0][0]);
+  static uint32_t timer = 0;
+  static int32_t encoderLast = 0;
+  static float bias[3] = {0}, pwm = 0;
+  uint32_t timeDiff = micros() - timer;
+  
+  uint8_t aState1 = digitalRead(encoderPin[0][0]);
   if (digitalRead(encoderPin[0][1]) != aState1) {
     encoderCounter[0] ++;
   } else {
     encoderCounter[0] --;
   }
-  aLastState1 = aState1;
+
+  if ( timeDiff > ENCODER_INTERVAL ) {
+    int32_t encoderDiff = encoderCounter[0] - encoderLast;
+    currentSpeed[0] = (float) ENCODER_INTERVAL * ENCODER_SCALE * encoderDiff / timeDiff;
+
+    bias[0] =  currentSpeed[0] - targetSpeed[0];
+  
+    pwm -= (
+      kp * (bias[0]-bias[1]) + 
+      ki *  bias[0] +
+      kd * (bias[0]-2*bias[1]+bias[2])
+    );   // fomula of PID
+    
+    bias[2]=bias[1];    // last last
+    bias[1]=bias[0];    // last
+
+    if ( pwm > 250 )  pwm = 250;
+    if ( pwm <-250 )  pwm =-250;
+
+    if      ( pwm>0 && pwm<256 ) {
+      digitalWrite(8, LOW);
+      digitalWrite(9, HIGH);
+      analogWrite(10, (int)pwm);
+    }
+    else if ( pwm<0 && pwm>-256 ) {
+      digitalWrite(8, HIGH);
+      digitalWrite(9, LOW);
+      analogWrite(10, (int)-pwm);
+    }
+    else{
+      digitalWrite(8, HIGH);
+      digitalWrite(9, HIGH);
+      digitalWrite(10, HIGH);
+    }
+
+    timer = micros();
+    encoderLast = encoderCounter[0];
+  }
 }
 
 void PeanutKing_Sumo::encode2(void) { 
-  static uint8_t aState2 = 0, aLastState2 = 0;
-  aState2 = digitalRead(encoderPin[1][0]);
+  static uint32_t timer = 0;
+  static int32_t encoderLast = 0;
+  static float bias[3] = {0}, pwm = 0;
+  uint32_t timeDiff = micros() - timer;
+  
+  uint8_t aState2 = digitalRead(encoderPin[1][0]);
   if (digitalRead(encoderPin[1][1]) != aState2) {
     encoderCounter[1] ++;
   } else {
     encoderCounter[1] --;
   }
-  aLastState2 = aState2;
+
+  if ( timeDiff > ENCODER_INTERVAL ) {
+    int32_t encoderDiff = encoderCounter[1] - encoderLast;
+    currentSpeed[1] = (float) ENCODER_INTERVAL * ENCODER_SCALE * encoderDiff / timeDiff;
+
+    bias[0] =  currentSpeed[1] - targetSpeed[1];
+
+    pwm -= (
+      kp * (bias[0]-bias[1]) + 
+      ki *  bias[0] +
+      kd * (bias[0]-2*bias[1]+bias[2])
+    );   // fomula of PID
+    
+    bias[2]=bias[1];    // last last
+    bias[1]=bias[0];    // last
+
+    if ( pwm > 250 )  pwm = 250;
+    if ( pwm <-250 )  pwm =-250;
+
+    if      ( pwm>0 && pwm<256 ) {
+      digitalWrite(12, LOW);
+      digitalWrite(11, HIGH);
+      analogWrite(13, (int)pwm);
+    }
+    else if ( pwm<0 && pwm>-256 ) {
+      digitalWrite(12, HIGH);
+      digitalWrite(11, LOW);
+      analogWrite(13, (int)-pwm);
+    }
+    else{
+      digitalWrite(12, HIGH);
+      digitalWrite(11, HIGH);
+      digitalWrite(13, HIGH);
+    }
+
+    timer = micros();
+    encoderLast = encoderCounter[1];
+  }
 }
 
